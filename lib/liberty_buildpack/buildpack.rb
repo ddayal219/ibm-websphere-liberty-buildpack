@@ -53,6 +53,47 @@ module LibertyBuildpack
       end
     end
 
+	def self.createMappings(tenantId, serviceId)
+     begin
+      file = File.open("/tmp/staged/app/#{tenantId}.war/WEB-INF/ibm-web-bnd.xml", "w")
+      file.write("<web-bnd
+        xmlns=\"http://websphere.ibm.com/xml/ns/javaee\"
+        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
+        xsi:schemaLocation=\"http://websphere.ibm.com/xml/ns/javaee
+                        http://websphere.ibm.com/xml/ns/javaee/ibm-web-bnd_1_0.xsd\"
+        version=\"1.0\">
+    <virtual-host name=\"default_host\"/>
+    <resource-ref name=\"jdbc/JNDItest\" binding-name=\"jdbc/#{serviceId}\"/>
+    
+    </web-bnd>") 
+    rescue IOError => e
+      #some error occur, dir not writable etc.
+    ensure
+      file.close unless file == nil 
+    end
+   end
+
+   def self.saasify
+      is_mt_app = ENV["IS_MT_APP"]
+      service_mappings = "{\"Tenant1\":\"Service1\",\"Tenant2\":\"Service2\"}"
+      tenant_Ids = "{\"1\":\"Tenant1\",\"2\":\"Tenant2\"}"
+      parsed_service_mappings = JSON.parse(ENV["SERVICE_MAPPINGS"])	
+      parsed_tenant_ids = JSON.parse(ENV["TENANT_IDS"])      
+
+      if is_mt_app["yes"] 
+	 Dir.mkdir '/tmp/staged/Tenant.war'
+	 FileUtils.cp_r '/tmp/staged/app/.', '/tmp/staged/Tenant.war'
+	 FileUtils.rm_rf(Dir.glob("/tmp/staged/app/*")) 
+	 no_tenants = ENV["NO_TENANTS"].to_i
+	 for i in 1..no_tenants
+	  FileUtils.cp_r "/tmp/staged/Tenant.war", "/tmp/staged/app/Tenant#{i}.war"
+	  Buildpack.createMappings(parsed_tenant_ids["#{i}"], parsed_service_mappings[parsed_tenant_ids["#{i}"]]) 
+	 end
+	 FileUtils.rm_rf('/tmp/staged/Tenant.war')
+	 Dir.mkdir '/tmp/staged/app/META-INF'
+      end
+    end
+	
     # Iterates over all of the components to detect if this buildpack can be used to run an application
     #
     # @return [Array<String>] An array of strings that identify the components and versions that will be used to run
@@ -77,6 +118,8 @@ module LibertyBuildpack
 
       the_container = container # diagnose detect failure early
       FileUtils.mkdir_p @lib_directory
+	  
+	  Buildpack.saasify
 
       @jre.compile
       frameworks.each { |framework| framework.compile }
