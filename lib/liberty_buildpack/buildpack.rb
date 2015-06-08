@@ -79,7 +79,7 @@ module LibertyBuildpack
       tenant_Ids = "{\"1\":\"Tenant1\",\"2\":\"Tenant2\"}"
       parsed_service_mappings = JSON.parse(ENV["SERVICE_MAPPINGS"])	
       parsed_tenant_ids = JSON.parse(ENV["TENANT_IDS"])      
-
+	 system("pwd")
       if is_mt_app["yes"] 
 	 Dir.mkdir '/tmp/staged/Tenant.war'
 	 FileUtils.cp_r '/tmp/staged/app/.', '/tmp/staged/Tenant.war'
