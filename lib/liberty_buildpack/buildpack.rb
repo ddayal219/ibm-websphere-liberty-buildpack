@@ -85,10 +85,10 @@ module LibertyBuildpack
 	 FileUtils.cp_r '/tmp/staged/app/.', '/tmp/staged/Tenant.war'
 	 FileUtils.rm_rf(Dir.glob("/tmp/staged/app/*")) 
 	 no_tenants = ENV["NO_TENANTS"].to_i
-	 for i in 1..no_tenants
-	  FileUtils.cp_r "/tmp/staged/Tenant.war", "/tmp/staged/app/Tenant#{i}.war"
-	  Buildpack.createMappings(parsed_tenant_ids["#{i}"], parsed_service_mappings[parsed_tenant_ids["#{i}"]]) 
-	 end
+	# for i in 1..no_tenants
+	#  FileUtils.cp_r "/tmp/staged/Tenant.war", "/tmp/staged/app/Tenant#{i}.war"
+	 # Buildpack.createMappings(parsed_tenant_ids["#{i}"], parsed_service_mappings[parsed_tenant_ids["#{i}"]]) 
+	# end
 	 FileUtils.rm_rf('/tmp/staged/Tenant.war')
 	 Dir.mkdir '/tmp/staged/app/META-INF'
       end
